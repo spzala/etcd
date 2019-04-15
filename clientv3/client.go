@@ -627,7 +627,9 @@ func toErr(ctx context.Context, err error) error {
 			}
 		case codes.Unavailable:
 		case codes.FailedPrecondition:
-			err = grpc.ErrClientConnClosing
+			if ctx.Err() != nil {
+				err = ctx.Err()
+			}
 		}
 	}
 	return err

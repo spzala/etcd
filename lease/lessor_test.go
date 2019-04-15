@@ -389,7 +389,7 @@ func TestLessorExpire(t *testing.T) {
 	go func() {
 		// expired lease cannot be renewed
 		if _, err := le.Renew(l.ID); err != ErrLeaseNotFound {
-			t.Fatalf("unexpected renew")
+			t.Errorf("unexpected renew")
 		}
 		donec <- struct{}{}
 	}()
@@ -442,7 +442,7 @@ func TestLessorExpireAndDemote(t *testing.T) {
 	go func() {
 		// expired lease cannot be renewed
 		if _, err := le.Renew(l.ID); err != ErrNotPrimary {
-			t.Fatalf("unexpected renew: %v", err)
+			t.Errorf("unexpected renew: %v", err)
 		}
 		donec <- struct{}{}
 	}()

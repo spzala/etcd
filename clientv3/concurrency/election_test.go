@@ -67,19 +67,13 @@ func TestResumeElection(t *testing.T) {
 	go func() {
 		o := e.Observe(ctx)
 		respChan <- nil
-		for {
-			select {
-			case resp, ok := <-o:
-				if !ok {
-					t.Fatal("Observe() channel closed prematurely")
-				}
-				// Ignore any observations that candidate1 was elected
-				if string(resp.Kvs[0].Value) == "candidate1" {
-					continue
-				}
-				respChan <- &resp
-				return
+		for resp := range o {
+			// Ignore any observations that candidate1 was elected
+			if string(resp.Kvs[0].Value) == "candidate1" {
+				continue
 			}
+			respChan <- &resp
+			return
 		}
 	}()
 

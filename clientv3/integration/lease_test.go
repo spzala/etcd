@@ -28,7 +28,7 @@ import (
 	"go.etcd.io/etcd/integration"
 	"go.etcd.io/etcd/pkg/testutil"
 
-	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 )
 
 func TestLeaseNotFoundError(t *testing.T) {
@@ -300,9 +300,9 @@ func TestLeaseGrantErrConnClosed(t *testing.T) {
 		defer close(donec)
 		_, err := cli.Grant(context.TODO(), 5)
 		if !clientv3.IsConnCanceled(err) {
-			// grpc.ErrClientConnClosing if grpc-go balancer calls 'Get' after client.Close.
+			// codes.Canceled if grpc-go balancer calls 'Get' after client.Close.
 			// context.Canceled if grpc-go balancer calls 'Get' with an inflight client.Close.
-			t.Fatalf("expected %v, %v or server unavailable, got %v", err != context.Canceled, grpc.ErrClientConnClosing, err)
+			t.Errorf("expected %v, %v or server unavailable, got %v", err != context.Canceled, codes.Canceled, err)
 		}
 	}()
 
@@ -372,7 +372,7 @@ func TestLeaseGrantNewAfterClose(t *testing.T) {
 	go func() {
 		_, err := cli.Grant(context.TODO(), 5)
 		if !clientv3.IsConnCanceled(err) {
-			t.Fatalf("expected %v, %v or server unavailable, got %v", err != context.Canceled, grpc.ErrClientConnClosing, err)
+			t.Errorf("expected %v, %v or server unavailable, got %v", err != context.Canceled, codes.Canceled, err)
 		}
 		close(donec)
 	}()
@@ -405,7 +405,7 @@ func TestLeaseRevokeNewAfterClose(t *testing.T) {
 	go func() {
 		_, err := cli.Revoke(context.TODO(), leaseID)
 		if !clientv3.IsConnCanceled(err) {
-			t.Fatalf("expected %v, %v or server unavailable, got %v", err != context.Canceled, grpc.ErrClientConnClosing, err)
+			t.Fatalf("expected %v, %v or server unavailable, got %v", err != context.Canceled, codes.Canceled, err)
 		}
 		close(donec)
 	}()
@@ -767,7 +767,7 @@ func TestV3LeaseFailureOverlap(t *testing.T) {
 				if err == nil || err == rpctypes.ErrTimeoutDueToConnectionLost {
 					return
 				}
-				t.Fatal(err)
+				t.Error(err)
 			}()
 		}
 	}

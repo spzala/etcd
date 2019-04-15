@@ -29,8 +29,8 @@ import (
 	"go.etcd.io/etcd/mvcc/mvccpb"
 	"go.etcd.io/etcd/pkg/testutil"
 
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestKVPutError(t *testing.T) {
@@ -448,7 +448,7 @@ func TestKVGetErrConnClosed(t *testing.T) {
 		defer close(donec)
 		_, err := cli.Get(context.TODO(), "foo")
 		if !clientv3.IsConnCanceled(err) {
-			t.Fatalf("expected %v or %v, got %v", context.Canceled, grpc.ErrClientConnClosing, err)
+			t.Errorf("expected %v or %v, got %v", context.Canceled, codes.Canceled, err)
 		}
 	}()
 
@@ -475,7 +475,7 @@ func TestKVNewAfterClose(t *testing.T) {
 	go func() {
 		_, err := cli.Get(context.TODO(), "foo")
 		if !clientv3.IsConnCanceled(err) {
-			t.Fatalf("expected %v or %v, got %v", context.Canceled, grpc.ErrClientConnClosing, err)
+			t.Errorf("expected %v or %v, got %v", context.Canceled, codes.Canceled, err)
 		}
 		close(donec)
 	}()
@@ -689,7 +689,7 @@ func TestKVGetRetry(t *testing.T) {
 		// Get will fail, but reconnect will trigger
 		gresp, gerr := kv.Get(ctx, "foo")
 		if gerr != nil {
-			t.Fatal(gerr)
+			t.Error(gerr)
 		}
 		wkvs := []*mvccpb.KeyValue{
 			{
@@ -701,7 +701,7 @@ func TestKVGetRetry(t *testing.T) {
 			},
 		}
 		if !reflect.DeepEqual(gresp.Kvs, wkvs) {
-			t.Fatalf("bad get: got %v, want %v", gresp.Kvs, wkvs)
+			t.Errorf("bad get: got %v, want %v", gresp.Kvs, wkvs)
 		}
 		donec <- struct{}{}
 	}()
@@ -739,10 +739,10 @@ func TestKVPutFailGetRetry(t *testing.T) {
 		// Get will fail, but reconnect will trigger
 		gresp, gerr := kv.Get(context.TODO(), "foo")
 		if gerr != nil {
-			t.Fatal(gerr)
+			t.Error(gerr)
 		}
 		if len(gresp.Kvs) != 0 {
-			t.Fatalf("bad get kvs: got %+v, want empty", gresp.Kvs)
+			t.Errorf("bad get kvs: got %+v, want empty", gresp.Kvs)
 		}
 		donec <- struct{}{}
 	}()
@@ -908,7 +908,7 @@ func TestKVLargeRequests(t *testing.T) {
 			maxCallSendBytesClient: 10 * 1024 * 1024,
 			maxCallRecvBytesClient: 0,
 			valueSize:              10 * 1024 * 1024,
-			expectError:            grpc.Errorf(codes.ResourceExhausted, "trying to send message larger than max "),
+			expectError:            status.Errorf(codes.ResourceExhausted, "trying to send message larger than max "),
 		},
 		{
 			maxRequestBytesServer:  10 * 1024 * 1024,
@@ -922,7 +922,7 @@ func TestKVLargeRequests(t *testing.T) {
 			maxCallSendBytesClient: 10 * 1024 * 1024,
 			maxCallRecvBytesClient: 0,
 			valueSize:              10*1024*1024 + 5,
-			expectError:            grpc.Errorf(codes.ResourceExhausted, "trying to send message larger than max "),
+			expectError:            status.Errorf(codes.ResourceExhausted, "trying to send message larger than max "),
 		},
 	}
 	for i, test := range tests {

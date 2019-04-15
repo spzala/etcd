@@ -224,7 +224,6 @@ func (bb *baseBalancer) HandleSubConnStateChange(sc balancer.SubConn, s connecti
 	}
 
 	bb.currentConn.UpdateBalancerState(bb.currentState, bb.Picker)
-	return
 }
 
 func (bb *baseBalancer) regeneratePicker() {

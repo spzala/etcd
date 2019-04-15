@@ -120,7 +120,10 @@ func (s *chanStream) RecvMsg(m interface{}) error {
 		select {
 		case msg, ok := <-s.recvc:
 			if !ok {
-				return grpc.ErrClientConnClosing
+				if s.ctx.Err() != nil {
+					err := s.ctx.Err()
+					return err
+				}
 			}
 			if err, ok := msg.(error); ok {
 				return err

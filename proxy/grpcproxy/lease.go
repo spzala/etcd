@@ -214,7 +214,7 @@ func (lp *leaseProxy) LeaseKeepAlive(stream pb.Lease_LeaseKeepAliveServer) error
 	case <-lostLeaderC:
 		return rpctypes.ErrNoLeader
 	case <-lp.leader.disconnectNotify():
-		return grpc.ErrClientConnClosing
+		return context.Canceled
 	default:
 		if err != nil {
 			return err

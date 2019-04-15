@@ -507,7 +507,7 @@ func (b *GRPC17Health) Get(ctx context.Context, opts grpc.BalancerGetOptions) (g
 		addr = b.pinAddr
 		b.mu.RUnlock()
 		if closed {
-			return grpc.Address{Addr: ""}, nil, grpc.ErrClientConnClosing
+			return grpc.Address{Addr: ""}, nil, context.Canceled
 		}
 		if addr == "" {
 			return grpc.Address{Addr: ""}, nil, ErrNoAddrAvilable
@@ -522,7 +522,7 @@ func (b *GRPC17Health) Get(ctx context.Context, opts grpc.BalancerGetOptions) (g
 		select {
 		case <-ch:
 		case <-b.donec:
-			return grpc.Address{Addr: ""}, nil, grpc.ErrClientConnClosing
+			return grpc.Address{Addr: ""}, nil, context.Canceled
 		case <-ctx.Done():
 			return grpc.Address{Addr: ""}, nil, ctx.Err()
 		}
@@ -532,7 +532,7 @@ func (b *GRPC17Health) Get(ctx context.Context, opts grpc.BalancerGetOptions) (g
 		b.mu.RUnlock()
 		// Close() which sets b.closed = true can be called before Get(), Get() must exit if balancer is closed.
 		if closed {
-			return grpc.Address{Addr: ""}, nil, grpc.ErrClientConnClosing
+			return grpc.Address{Addr: ""}, nil, context.Canceled
 		}
 		if addr != "" {
 			break
