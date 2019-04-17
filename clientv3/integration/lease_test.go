@@ -86,7 +86,7 @@ func TestLeaseRevoke(t *testing.T) {
 		t.Errorf("failed to create lease %v", err)
 	}
 
-	_, err = lapi.Revoke(context.Background(), clientv3.LeaseID(resp.ID))
+	_, err = lapi.Revoke(context.Background(), resp.ID)
 	if err != nil {
 		t.Errorf("failed to revoke lease %v", err)
 	}
